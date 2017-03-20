@@ -1887,9 +1887,16 @@ bool FeVM::cb_get_input_state( const char *input )
 	HSQUIRRELVM vm = Sqrat::DefaultVM::Get();
 	FeVM *fev = (FeVM *)sq_getforeignptr( vm );
 
+	// Is this a HID string?  If so we are looking to see what the last mouse movement was
 	if (strncmp(input, "HID\\", 4) == 0)
 	{	
-		return (strcmp(input, fev->m_last_mouse_device_name.c_str()) == 0);
+		if (strcmp(input, fev->m_last_mouse_device_name.c_str()) == 0)
+                {
+			fev->m_last_mouse_device_name.clear();
+			return true;
+                }
+                else
+                       return false;
 	}	
 	//
 	// First test if a command has been provided
