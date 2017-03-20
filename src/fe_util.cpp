@@ -728,7 +728,7 @@ bool run_program( const std::string &prog,
 	launch_callback_fn wait_cb,
 	void *launch_opaque )
 {
-	const int POLL_FOR_EXIT_MS=50;
+	const int POLL_FOR_EXIT_MS=2;
 
 	std::string comstr( prog );
 	comstr += " ";

@@ -222,6 +222,9 @@ public:
 	static Sqrat::Table cb_get_config();
 	static void cb_signal( const char * );
 	static void cb_set_display( int );
+
+	static int m_last_mouse_device;
+ 	static std::string m_last_mouse_device_name;
 };
 
 #endif

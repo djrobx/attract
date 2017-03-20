@@ -50,6 +50,8 @@
 #include <stdarg.h>
 
 const char *FE_SCRIPT_NV_FILE = "script.nv";
+int FeVM::m_last_mouse_device = -1;
+std::string FeVM::m_last_mouse_device_name;
 
 namespace
 {
@@ -308,6 +310,7 @@ FeVM::FeVM( FeSettings &fes, FeFontContainer &defaultfont, FeWindow &wnd, FeSoun
 	m_script_cfg( NULL ),
 	m_script_id( -1 )
 {
+	m_last_mouse_device = -1;
 	srand( time( NULL ) );
 	vm_init();
 
@@ -361,7 +364,23 @@ void FeVM::set_overlay( FeOverlay *feo )
 
 bool FeVM::poll_command( FeInputMap::Command &c, sf::Event &ev, bool &from_ui )
 {
+    ManyMouseEvent mmev;
 	from_ui=false;
+	int last_device = -1;
+
+	while ( ManyMouse_PollEvent( &mmev ) )
+	{
+		last_device = mmev.device;		
+	}
+	if (last_device >= 0)
+        {
+		if (m_last_mouse_device != last_device)
+		{
+			m_last_mouse_device = last_device;
+			m_last_mouse_device_name = ManyMouse_DeviceName(last_device);
+//			printf("Switch to: %s\n", m_last_mouse_device_name.c_str());
+		}
+        }
 
 	if ( !m_posted_commands.empty() )
 	{
@@ -1868,6 +1887,10 @@ bool FeVM::cb_get_input_state( const char *input )
 	HSQUIRRELVM vm = Sqrat::DefaultVM::Get();
 	FeVM *fev = (FeVM *)sq_getforeignptr( vm );
 
+	if (strncmp(input, "HID\\", 4) == 0)
+	{	
+		return (strcmp(input, fev->m_last_mouse_device_name.c_str()) == 0);
+	}	
 	//
 	// First test if a command has been provided
 	//
