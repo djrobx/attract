@@ -25,6 +25,7 @@
 
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/Rect.hpp>
+#include <manymouse/manymouse.h>
 #include "fe_base.hpp"
 #include <vector>
 #include <map>
@@ -63,6 +64,8 @@ public:
 
 	// Construct from a known type and code
 	FeInputSingle( Type t, int code );
+	// Construct from a ManyMouse event
+	FeInputSingle( const ManyMouseEvent &mmev, const sf::IntRect &mc_rect, const int mouse_thresh );
 
 	// Construct from an SFML event
 	FeInputSingle( const sf::Event &ev, const sf::IntRect &mc_rect, const int joy_thresh );
@@ -95,6 +98,7 @@ private:
 
 	Type m_type;
 	int m_code;
+	int m_value;
 };
 
 class FeInputMapEntry;
@@ -172,6 +176,7 @@ public:
 
 	FeInputMap();
 
+	Command map_input( const ManyMouseEvent &, const sf::IntRect &mc_rect, const int mouse_thresh );
 	Command map_input( const sf::Event &, const sf::IntRect &mc_rect, const int joy_thresh );
 
 	Command input_conflict_check( const FeInputMapEntry &e );

@@ -32,6 +32,7 @@
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
+#include <manymouse/manymouse.h>
 
 #ifndef NO_MOVIE
 #include <Audio/AudioDevice.hpp>
@@ -134,7 +135,23 @@ int main(int argc, char *argv[])
 
 	sf::Clock move_timer;
 	sf::Event move_event;
+	int move_event_type;
+	ManyMouseEvent mouse_event;
+
 	int move_last_triggered( 0 );
+
+	const int available_mice = ManyMouse_Init();
+	if (available_mice < 0) {
+		std::cerr << "Error initializing mouse api." << std::endl;
+		return 1;
+	}
+	else
+	{
+          int i;
+          printf("ManyMouse driver: %s\n", ManyMouse_DriverName());
+          for (i = 0; i < available_mice; i++)
+            printf("#%d: %s\n", i, ManyMouse_DeviceName(i));
+        }
 
 	// go straight into config mode if there are no lists configured for
 	// display
@@ -274,18 +291,22 @@ int main(int argc, char *argv[])
 		FeInputMap::Command c;
 		sf::Event ev;
 		bool from_ui;
+		ManyMouseEvent mmev;
+		int event_type;
 		while ( feVM.poll_command( c, ev, from_ui ) )
 		{
 			//
 			// Special case handling based on event type
 			//
+			if ( event_type == EventProvider::SFML )
+			{
 			switch ( ev.type )
 			{
 				case sf::Event::Closed:
 					exit_selected = true;
 					break;
 
-				case sf::Event::MouseMoved:
+				/*case sf::Event::MouseMoved:
 					if ( feSettings.test_mouse_reset( ev.mouseMove.x, ev.mouseMove.y ))
 					{
 						// We reset the mouse if we are capturing it and it has moved
@@ -294,7 +315,7 @@ int main(int argc, char *argv[])
 						sf::Vector2u s = window.getSize();
 						sf::Mouse::setPosition( sf::Vector2i( s.x / 2, s.y / 2 ), window );
 					}
-					break;
+					break; */
 
 				case sf::Event::KeyReleased:
 				case sf::Event::MouseButtonReleased:
@@ -332,7 +353,20 @@ int main(int argc, char *argv[])
 				default:
 					break;
 			}
-
+			}
+			else if ( event_type == EventProvider::MANYMOUSE )
+			{
+				switch ( mmev.type )
+				{
+					case MANYMOUSE_EVENT_BUTTON:
+						if (( c == FeInputMap::LAST_COMMAND )
+								&& ( feVM.reset_screen_saver() ))
+							redraw = true;
+						break;
+					default:
+						break;
+				}
+			}
 			// Test if we need to keep the joystick axis guard up
 			//
 			if (( guard_joyid >= 0 )
@@ -654,6 +688,8 @@ int main(int argc, char *argv[])
 		{
 			bool cont=false;
 
+			if ( move_event_type == EventProvider::SFML )
+			{
 			switch ( move_event.type )
 			{
 			case sf::Event::KeyPressed:
@@ -661,10 +697,10 @@ int main(int argc, char *argv[])
 					cont=true;
 				break;
 
-			case sf::Event::MouseButtonPressed:
+		/*	case sf::Event::MouseButtonPressed:
 				if ( sf::Mouse::isButtonPressed( move_event.mouseButton.button ) )
 					cont=true;
-				break;
+				break; */
 
 			case sf::Event::JoystickButtonPressed:
 				if ( sf::Joystick::isButtonPressed(
@@ -687,6 +723,19 @@ int main(int argc, char *argv[])
 
 			default:
 				break;
+			}
+			}
+			else if ( event_type == EventProvider::MANYMOUSE )
+			{
+				switch ( mouse_event.type )
+				{
+				case MANYMOUSE_EVENT_BUTTON:
+					if ( mouse_event.value )
+						cont=true;
+					break;
+				default:
+					break;
+				}
 			}
 
 			if ( cont )
