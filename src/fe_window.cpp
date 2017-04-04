@@ -267,6 +267,9 @@ void wait_callback( void *o )
 
 	if ( win->isOpen() )
 	{
+		ManyMouseEvent mmev;
+		while ( ManyMouse_PollEvent( &mmev ) );
+
 		sf::Event ev;
 		while ( win->pollEvent( ev ) )
 		{

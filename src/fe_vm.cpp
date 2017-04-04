@@ -1893,11 +1893,16 @@ bool FeVM::cb_get_input_state( const char *input )
 		if (strcmp(input, fev->m_last_mouse_device_name.c_str()) == 0)
                 {
 			fev->m_last_mouse_device_name.clear();
+			fev->m_last_mouse_device = -1;
 			return true;
                 }
                 else
+		{
+		       fev->m_last_mouse_device_name.clear();
+		       fev->m_last_mouse_device = -1;		 
                        return false;
-	}	
+		}
+	}
 	//
 	// First test if a command has been provided
 	//
